@@ -2,8 +2,8 @@ services:
   n8n:
     image: n8nio/n8n
     restart: unless-stopped
-    ports:
-      - "5678:5678"
+    expose:
+      - "5678"
     environment:
       - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE:-true}
       - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
@@ -11,6 +11,7 @@ services:
       - N8N_HOST=${N8N_HOST:-0.0.0.0}
       - N8N_PORT=5678
       - WEBHOOK_URL=${WEBHOOK_URL}
+      - N8N_SECURE_COOKIE=${N8N_SECURE_COOKIE:-false}
     volumes:
       - n8n_data:/home/node/.n8n
     networks:
