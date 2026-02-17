@@ -24,6 +24,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    volumes:
+      - telethon_session:/app/sessions
     depends_on:
       - n8n
     networks:
@@ -31,6 +33,7 @@ services:
 
 volumes:
   n8n_data:
+  telethon_session:
 
 networks:
   app-network:
