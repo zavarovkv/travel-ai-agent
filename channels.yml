@@ -2,5 +2,6 @@ channels:
   - wrkhotel
   - Hoteliernews
   - yandex_travel_pro
+  - HotelierPRO
 
 target: dnd_daily
