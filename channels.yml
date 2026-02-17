@@ -5,3 +5,7 @@ channels:
   - HotelierPRO
 
 target: dnd_daily
+
+daily:
+  - channel: chat_hotel
+    webhook: http://n8n:5678/webhook/chat-hotel-daily

@@ -4,6 +4,7 @@ import json
 import os
 from datetime import datetime, timedelta, timezone
 
+import aiohttp
 import yaml
 from telethon import TelegramClient
 from telethon.errors import (
@@ -97,5 +98,49 @@ async def run_collector():
             print(f"[INFO] collected {len(messages)} posts (no target channel set)")
     else:
         print("[INFO] no new posts")
+
+    await client.disconnect()
+
+
+async def run_daily_collector():
+    config = load_config()
+    daily_entries = config.get("daily", [])
+
+    if not daily_entries:
+        print("[INFO] no daily channels configured")
+        return
+
+    client = TelegramClient(SESSION_PATH, API_ID, API_HASH)
+    await client.start()
+
+    now = datetime.now(timezone.utc).isoformat()
+    print(f"[{now}] daily collector: collecting posts for last 24h...")
+
+    for entry in daily_entries:
+        channel = entry["channel"]
+        webhook = entry["webhook"]
+
+        messages = await collect_messages(client, [channel], hours=24)
+
+        posts = []
+        for msg in messages:
+            posts.append({
+                "channel": getattr(msg.chat, "username", None) or channel,
+                "id": msg.id,
+                "date": msg.date.isoformat(),
+                "text": msg.text or "",
+            })
+
+        print(f"[INFO] daily: @{channel} — {len(posts)} posts")
+
+        if not posts:
+            continue
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(webhook, json=posts) as resp:
+                    print(f"[INFO] POST {webhook} → {resp.status}")
+        except Exception as e:
+            print(f"[ERROR] POST {webhook} failed: {e}")
 
     await client.disconnect()
