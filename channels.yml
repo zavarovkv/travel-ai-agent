@@ -1,4 +1,5 @@
 channels:
   - wrkhotel
+  - Hoteliernews
 
 target: dnd_daily
