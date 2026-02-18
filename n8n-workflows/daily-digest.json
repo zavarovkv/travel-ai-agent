@@ -76,15 +76,6 @@
                 "type": "string",
                 "operation": "notEmpty"
               }
-            },
-            {
-              "id": "filter-no-media",
-              "leftValue": "={{ $json.has_media }}",
-              "rightValue": false,
-              "operator": {
-                "type": "boolean",
-                "operation": "equals"
-              }
             }
           ],
           "combinator": "and"
