@@ -1,0 +1,172 @@
+{
+  "name": "Daily Digest — chat_hotel",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "b2c3d4e5-0002-0002-0002-000000000001",
+      "name": "Daily at 01:00 MSK",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://app:8080/collect",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"channels\": [\"chat_hotel\"],\n  \"hours\": 24\n}",
+        "options": {}
+      },
+      "id": "b2c3d4e5-0002-0002-0002-000000000002",
+      "name": "Collect 24h Posts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Split the array of posts into individual n8n items\nconst posts = $input.first().json;\nif (!Array.isArray(posts) || posts.length === 0) {\n  return [];\n}\nreturn posts.map(post => ({ json: post }));"
+      },
+      "id": "b2c3d4e5-0002-0002-0002-000000000003",
+      "name": "Split into Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "filter-has-text",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "b2c3d4e5-0002-0002-0002-000000000004",
+      "name": "Has Text",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// === PLACEHOLDER: AI Summarization ===\n// Здесь можно подключить OpenAI node или Code node для суммаризации.\n// Пример: сгруппировать посты и попросить GPT написать дайджест.\n//\n// Пока просто пропускаем каждый пост дальше без изменений.\nreturn $input.all();"
+      },
+      "id": "b2c3d4e5-0002-0002-0002-000000000005",
+      "name": "Summarize (TODO)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "@dnd_daily",
+        "text": "=📰 <b>Дайджест @{{ $json.channel }}</b>\n{{ $json.date }}\n\n{{ $json.text }}",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "b2c3d4e5-0002-0002-0002-000000000006",
+      "name": "Send Digest",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1340, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "1",
+          "name": "Telegram Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily at 01:00 MSK": {
+      "main": [
+        [
+          {
+            "node": "Collect 24h Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect 24h Posts": {
+      "main": [
+        [
+          {
+            "node": "Split into Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split into Items": {
+      "main": [
+        [
+          {
+            "node": "Has Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Text": {
+      "main": [
+        [
+          {
+            "node": "Summarize (TODO)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize (TODO)": {
+      "main": [
+        [
+          {
+            "node": "Send Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

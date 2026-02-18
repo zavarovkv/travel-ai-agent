@@ -1,11 +1,13 @@
+# Reference only — channel lists are now configured inside n8n workflows.
+# See n8n-workflows/hourly-collector.json and n8n-workflows/daily-digest.json
+
 channels:
   - wrkhotel
   - Hoteliernews
   - yandex_travel_pro
   - HotelierPRO
 
-target: dnd_daily
-
 daily:
   - channel: chat_hotel
-    webhook: http://n8n:5678/webhook/chat-hotel-daily
+
+target: dnd_daily
