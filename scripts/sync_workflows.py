@@ -41,6 +41,8 @@ def wait_for_n8n(timeout: int = 90) -> None:
     for _ in range(timeout // 3):
         try:
             urllib.request.urlopen(f"{N8N_URL}/healthz", timeout=2)
+            # healthz can return 200 before the REST API is fully initialized
+            time.sleep(5)
             print("[INFO] n8n is ready")
             return
         except Exception:
