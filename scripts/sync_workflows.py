@@ -18,8 +18,9 @@ N8N_API_KEY = os.environ.get("N8N_API_KEY", "")
 WORKFLOWS_DIR = Path(__file__).parent.parent / "n8n-workflows"
 
 if not N8N_API_KEY:
-    print("[ERROR] N8N_API_KEY is not set")
-    sys.exit(1)
+    print("[WARN] N8N_API_KEY is not set — skipping workflow sync")
+    print("[WARN] To enable: generate key in n8n UI → Settings → n8n API, add as GitHub Secret N8N_API_KEY")
+    sys.exit(0)
 
 HEADERS = {
     "X-N8N-API-KEY": N8N_API_KEY,
