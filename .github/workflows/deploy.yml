@@ -10,9 +10,13 @@ jobs:
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
+        env:
+          N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
+          envs: N8N_API_KEY
           script: |
             cd ~/travel-ai-agent && git pull origin main && docker compose -f docker-compose.yml up -d --build
+            python3 ~/travel-ai-agent/scripts/sync_workflows.py

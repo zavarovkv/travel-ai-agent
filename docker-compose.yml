@@ -10,7 +10,7 @@ services:
       - WEBHOOK_URL=${WEBHOOK_URL}
       - N8N_SECURE_COOKIE=${N8N_SECURE_COOKIE:-false}
       - N8N_USER_MANAGEMENT_DISABLED=false
-      - N8N_PUBLIC_API_DISABLED=true
+      - N8N_PUBLIC_API_DISABLED=false
     volumes:
       - n8n_data:/home/node/.n8n
     networks:
