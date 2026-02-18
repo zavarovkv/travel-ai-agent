@@ -108,7 +108,7 @@
       "credentials": {
         "telegramApi": {
           "id": "1",
-          "name": "Telegram Bot"
+          "name": "Telegram account"
         }
       }
     }
