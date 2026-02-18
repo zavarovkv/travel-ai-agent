@@ -52,11 +52,9 @@ def wait_for_n8n(timeout: int = 90) -> None:
 ALLOWED_FIELDS = {"name", "nodes", "connections", "settings", "staticData"}
 
 
-def to_api_body(workflow: dict, active: bool = False) -> dict:
-    """Strip fields not accepted by n8n API."""
-    body = {k: v for k, v in workflow.items() if k in ALLOWED_FIELDS}
-    body["active"] = active
-    return body
+def to_api_body(workflow: dict) -> dict:
+    """Strip fields not accepted by n8n API (active is read-only)."""
+    return {k: v for k, v in workflow.items() if k in ALLOWED_FIELDS}
 
 
 def sync() -> None:
@@ -70,16 +68,17 @@ def sync() -> None:
     for path in sorted(WORKFLOWS_DIR.glob("*.json")):
         workflow = json.loads(path.read_text())
         name = workflow["name"]
+        body = to_api_body(workflow)
 
         if name in existing:
             wf = existing[name]
             wf_id = wf["id"]
-            # Preserve active status so we don't deactivate running workflows
-            body = to_api_body(workflow, active=wf["active"])
             api("PUT", f"/workflows/{wf_id}", body)
+            # Restore active state via dedicated endpoint
+            if wf["active"]:
+                api("POST", f"/workflows/{wf_id}/activate")
             print(f"[UPDATE] '{name}' (id={wf_id}, active={wf['active']})")
         else:
-            body = to_api_body(workflow, active=False)
             result = api("POST", "/workflows", body)
             print(f"[CREATE] '{name}' (id={result['id']})")
 
