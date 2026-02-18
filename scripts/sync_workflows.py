@@ -57,8 +57,25 @@ def to_api_body(workflow: dict) -> dict:
     return {k: v for k, v in workflow.items() if k in ALLOWED_FIELDS}
 
 
+def resolve_credentials(body: dict, cred_map: dict) -> None:
+    """Replace placeholder credential IDs with real IDs looked up by name."""
+    for node in body.get("nodes", []):
+        for cred_ref in node.get("credentials", {}).values():
+            name = cred_ref.get("name")
+            if name and name in cred_map:
+                cred_ref["id"] = cred_map[name]
+
+
 def sync() -> None:
     wait_for_n8n()
+
+    # Build name → id map for all credentials in n8n
+    cred_map = {
+        c["name"]: c["id"]
+        for c in api("GET", "/credentials").get("data", [])
+    }
+    if cred_map:
+        print(f"[INFO] found credentials: {list(cred_map.keys())}")
 
     existing = {
         w["name"]: w
@@ -69,6 +86,7 @@ def sync() -> None:
         workflow = json.loads(path.read_text())
         name = workflow["name"]
         body = to_api_body(workflow)
+        resolve_credentials(body, cred_map)
 
         if name in existing:
             wf = existing[name]
