@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 from aiohttp import web
 from telethon import TelegramClient
+from telethon.tl.types import MessageMediaPhoto, MessageMediaDocument
 
 from src.collector import API_ID, API_HASH, SESSION_PATH, collect_messages
 
@@ -39,6 +40,7 @@ async def handle_collect(request: web.Request) -> web.Response:
             "id": msg.id,
             "date": msg.date.isoformat(),
             "text": msg.text or "",
+            "has_media": isinstance(msg.media, (MessageMediaPhoto, MessageMediaDocument)),
         }
         for msg in messages
     ]
