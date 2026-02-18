@@ -49,6 +49,16 @@ def wait_for_n8n(timeout: int = 90) -> None:
     sys.exit(1)
 
 
+ALLOWED_FIELDS = {"name", "nodes", "connections", "settings", "staticData"}
+
+
+def to_api_body(workflow: dict, active: bool = False) -> dict:
+    """Strip fields not accepted by n8n API."""
+    body = {k: v for k, v in workflow.items() if k in ALLOWED_FIELDS}
+    body["active"] = active
+    return body
+
+
 def sync() -> None:
     wait_for_n8n()
 
@@ -60,18 +70,17 @@ def sync() -> None:
     for path in sorted(WORKFLOWS_DIR.glob("*.json")):
         workflow = json.loads(path.read_text())
         name = workflow["name"]
-        workflow.pop("id", None)
-        workflow.pop("versionId", None)
 
         if name in existing:
             wf = existing[name]
             wf_id = wf["id"]
             # Preserve active status so we don't deactivate running workflows
-            workflow["active"] = wf["active"]
-            api("PUT", f"/workflows/{wf_id}", workflow)
+            body = to_api_body(workflow, active=wf["active"])
+            api("PUT", f"/workflows/{wf_id}", body)
             print(f"[UPDATE] '{name}' (id={wf_id}, active={wf['active']})")
         else:
-            result = api("POST", "/workflows", workflow)
+            body = to_api_body(workflow, active=False)
+            result = api("POST", "/workflows", body)
             print(f"[CREATE] '{name}' (id={result['id']})")
 
 
