@@ -170,7 +170,7 @@
       "parameters": {
         "operation": "sendMessage",
         "chatId": "@dnd_daily",
-        "text": "=📰 <b>Дайджест @chat_hotel</b>\n\n{{ $json.summary }}",
+        "text": "{{ $json.summary }}",
         "additionalFields": {
           "parse_mode": "HTML",
           "disable_web_page_preview": true
