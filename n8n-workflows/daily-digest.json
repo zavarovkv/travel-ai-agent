@@ -85,23 +85,57 @@
       "name": "Has Text",
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate all posts into a single item with prompt for LLM\nconst posts = $input.all().map(item => ({\n  channel: item.json.channel,\n  date: item.json.date,\n  text: item.json.text,\n}));\n\nif (posts.length === 0) {\n  return [];\n}\n\nconst postsText = posts\n  .map((p, i) => `${i + 1}. ${p.text}`)\n  .join('\\n\\n---\\n\\n');\n\nconst prompt = `Ты — редактор профессионального дайджеста для отельеров. \nНиже — посты из Telegram-канала за последние 24 часа.\n\nСделай краткий дайджест на русском языке: выдели главные темы и ключевые новости.\nФормат — маркированный список, каждый пункт 1–2 предложения.\n\nПосты:\\n${postsText}`;\n\nreturn [{ json: { posts, prompt, post_count: posts.length } }];"
+      },
+      "id": "b2c3d4e5-0002-0002-0002-000000000005",
+      "name": "Aggregate Posts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [1120, 300]
     },
     {
       "parameters": {
-        "jsCode": "// === PLACEHOLDER: AI Summarization ===\n// Здесь можно подключить OpenAI node или Code node для суммаризации.\n// Пример: сгруппировать посты и попросить GPT написать дайджест.\n//\n// Пока просто пропускаем каждый пост дальше без изменений.\nreturn $input.all();"
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $env.OPENAI_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: $json.prompt }], temperature: 0.3 }) }}",
+        "options": {}
       },
-      "id": "b2c3d4e5-0002-0002-0002-000000000005",
-      "name": "Summarize (TODO)",
+      "id": "b2c3d4e5-0002-0002-0002-000000000008",
+      "name": "Call LLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst summary = response.choices[0].message.content;\nreturn [{ json: { summary } }];"
+      },
+      "id": "b2c3d4e5-0002-0002-0002-000000000009",
+      "name": "Extract Summary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1340, 300]
+      "position": [1560, 300]
     },
     {
       "parameters": {
         "operation": "sendMessage",
         "chatId": "@dnd_daily",
-        "text": "=📰 <b>Дайджест @{{ $json.channel }}</b>\n{{ $json.date }}\n\n{{ $json.text }}",
+        "text": "=📰 <b>Дайджест @chat_hotel</b>\n\n{{ $json.summary }}",
         "additionalFields": {
           "parse_mode": "HTML",
           "disable_web_page_preview": true
@@ -111,7 +145,7 @@
       "name": "Send Digest",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1560, 300],
+      "position": [1780, 300],
       "credentials": {
         "telegramApi": {
           "id": "1",
@@ -158,14 +192,36 @@
       "main": [
         [
           {
-            "node": "Summarize (TODO)",
+            "node": "Aggregate Posts",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Summarize (TODO)": {
+    "Aggregate Posts": {
+      "main": [
+        [
+          {
+            "node": "Call LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call LLM": {
+      "main": [
+        [
+          {
+            "node": "Extract Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Summary": {
       "main": [
         [
           {
