@@ -2,12 +2,23 @@
 
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 
 from aiohttp import web
 from telethon import TelegramClient
 from telethon.tl.types import MessageMediaPhoto, MessageMediaDocument
 
 from src.collector import API_ID, API_HASH, SESSION_PATH, collect_messages
+
+PROMPTS_DIR = Path("prompts")
+
+
+async def handle_prompt(request: web.Request) -> web.Response:
+    name = request.match_info["name"]
+    path = PROMPTS_DIR / f"{name}.txt"
+    if not path.exists():
+        return web.json_response({"error": "not found"}, status=404)
+    return web.json_response({"prompt": path.read_text()})
 
 
 async def handle_health(request: web.Request) -> web.Response:
@@ -66,6 +77,7 @@ async def on_shutdown(app: web.Application) -> None:
 def create_app() -> web.Application:
     app = web.Application()
     app.router.add_get("/health", handle_health)
+    app.router.add_get("/prompts/{name}", handle_prompt)
     app.router.add_post("/collect", handle_collect)
     app.on_startup.append(on_startup)
     app.on_shutdown.append(on_shutdown)

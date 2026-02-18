@@ -16,7 +16,10 @@
       "name": "Daily at 01:00 MSK",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [240, 300]
+      "position": [
+        240,
+        300
+      ]
     },
     {
       "parameters": {
@@ -42,7 +45,24 @@
       "name": "Params",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [460, 300]
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://app:8080/prompts/daily-digest",
+        "options": {}
+      },
+      "id": "b2c3d4e5-0002-0002-0002-000000000010",
+      "name": "Fetch Prompt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        160
+      ]
     },
     {
       "parameters": {
@@ -57,7 +77,10 @@
       "name": "Collect 24h Posts",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [680, 300]
+      "position": [
+        680,
+        300
+      ]
     },
     {
       "parameters": {
@@ -85,17 +108,23 @@
       "name": "Has Text",
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2,
-      "position": [900, 300]
+      "position": [
+        900,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Aggregate all posts into a single item with prompt for LLM\nconst posts = $input.all().map(item => ({\n  channel: item.json.channel,\n  date: item.json.date,\n  text: item.json.text,\n}));\n\nif (posts.length === 0) {\n  return [];\n}\n\nconst postsText = posts\n  .map((p, i) => `${i + 1}. ${p.text}`)\n  .join('\\n\\n---\\n\\n');\n\nconst prompt = `Ты — редактор профессионального дайджеста для отельеров. \nНиже — посты из Telegram-канала за последние 24 часа.\n\nСделай краткий дайджест на русском языке: выдели главные темы и ключевые новости.\nФормат — маркированный список, каждый пункт 1–2 предложения.\n\nПосты:\\n${postsText}`;\n\nreturn [{ json: { posts, prompt, post_count: posts.length } }];"
+        "jsCode": "const promptTemplate = $('Fetch Prompt').first().json.prompt;\n\nconst posts = $input.all().map(item => ({\n  channel: item.json.channel,\n  date: item.json.date,\n  text: item.json.text,\n}));\n\nif (posts.length === 0) {\n  return [];\n}\n\nconst postsText = posts\n  .map((p, i) => `${i + 1}. ${p.text}`)\n  .join('\\n\\n---\\n\\n');\n\nconst prompt = promptTemplate.replace('{posts}', postsText);\n\nreturn [{ json: { posts, prompt, post_count: posts.length } }];"
       },
       "id": "b2c3d4e5-0002-0002-0002-000000000005",
       "name": "Aggregate Posts",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1120, 300]
+      "position": [
+        1120,
+        300
+      ]
     },
     {
       "parameters": {
@@ -119,7 +148,10 @@
       "name": "Call LLM",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1340, 300]
+      "position": [
+        1340,
+        300
+      ]
     },
     {
       "parameters": {
@@ -129,7 +161,10 @@
       "name": "Extract Summary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1560, 300]
+      "position": [
+        1560,
+        300
+      ]
     },
     {
       "parameters": {
@@ -145,7 +180,10 @@
       "name": "Send Digest",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1780, 300],
+      "position": [
+        1780,
+        300
+      ],
       "credentials": {
         "telegramApi": {
           "id": "1",
@@ -169,6 +207,11 @@
     "Params": {
       "main": [
         [
+          {
+            "node": "Fetch Prompt",
+            "type": "main",
+            "index": 0
+          },
           {
             "node": "Collect 24h Posts",
             "type": "main",
@@ -230,6 +273,11 @@
             "index": 0
           }
         ]
+      ]
+    },
+    "Fetch Prompt": {
+      "main": [
+        []
       ]
     }
   },
