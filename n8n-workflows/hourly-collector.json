@@ -61,16 +61,6 @@
     },
     {
       "parameters": {
-        "jsCode": "// Split the array of posts returned by /collect into individual n8n items\nconst posts = $input.first().json;\nif (!Array.isArray(posts) || posts.length === 0) {\n  return [];\n}\nreturn posts.map(post => ({ json: post }));"
-      },
-      "id": "a1b2c3d4-0001-0001-0001-000000000003",
-      "name": "Split into Items",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [900, 300]
-    },
-    {
-      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -153,17 +143,6 @@
       ]
     },
     "Collect Posts": {
-      "main": [
-        [
-          {
-            "node": "Split into Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Split into Items": {
       "main": [
         [
           {
