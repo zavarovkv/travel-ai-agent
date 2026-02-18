@@ -20,18 +20,44 @@
     },
     {
       "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "param-hours",
+              "name": "hours",
+              "value": 1,
+              "type": "number"
+            },
+            {
+              "id": "param-channels",
+              "name": "channels",
+              "value": "=[\"wrkhotel\", \"Hoteliernews\", \"yandex_travel_pro\", \"HotelierPRO\"]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000006",
+      "name": "Params",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "http://app:8080/collect",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"channels\": [\"wrkhotel\", \"Hoteliernews\", \"yandex_travel_pro\", \"HotelierPRO\"],\n  \"hours\": 1\n}",
+        "jsonBody": "={{ JSON.stringify({ channels: $json.channels, hours: $json.hours }) }}",
         "options": {}
       },
       "id": "a1b2c3d4-0001-0001-0001-000000000002",
       "name": "Collect Posts",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [460, 300]
+      "position": [680, 300]
     },
     {
       "parameters": {
@@ -41,7 +67,7 @@
       "name": "Split into Items",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [680, 300]
+      "position": [900, 300]
     },
     {
       "parameters": {
@@ -78,7 +104,7 @@
       "name": "Has Text",
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2,
-      "position": [900, 300]
+      "position": [1120, 300]
     },
     {
       "parameters": {
@@ -94,7 +120,7 @@
       "name": "Send to Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1120, 300],
+      "position": [1340, 300],
       "credentials": {
         "telegramApi": {
           "id": "1",
@@ -105,6 +131,17 @@
   ],
   "connections": {
     "Every Hour": {
+      "main": [
+        [
+          {
+            "node": "Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Params": {
       "main": [
         [
           {
