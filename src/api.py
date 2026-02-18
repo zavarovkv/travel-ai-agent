@@ -15,7 +15,7 @@ PROMPTS_DIR = Path("prompts")
 
 async def handle_prompt(request: web.Request) -> web.Response:
     name = request.match_info["name"]
-    path = PROMPTS_DIR / f"{name}.txt"
+    path = PROMPTS_DIR / f"{name}.md"
     if not path.exists():
         return web.json_response({"error": "not found"}, status=404)
     return web.json_response({"prompt": path.read_text()})
